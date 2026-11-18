@@ -11,10 +11,12 @@ interface ReportModalProps {
   onSubmit: (input: NewReportInput) => void
 }
 
+const MAX_PHOTOS = 3
+
 export default function ReportModal({ location, onClose, onSubmit }: ReportModalProps) {
   const [category, setCategory] = useState<CategoryId | null>(null)
   const [description, setDescription] = useState('')
-  const [photo, setPhoto] = useState<string | null>(null)
+  const [photos, setPhotos] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [photoLoading, setPhotoLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -36,13 +38,22 @@ export default function ReportModal({ location, onClose, onSubmit }: ReportModal
   const canSubmit =
     category !== null && description.trim().length >= 5 && !photoLoading
 
-  const handlePhoto = async (file: File | undefined) => {
-    if (!file) return
+  const handlePhotos = async (files: FileList | null) => {
+    if (!files?.length) return
     setError(null)
+    const available = MAX_PHOTOS - photos.length
+    if (available <= 0) {
+      setError(`En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsin.`)
+      return
+    }
+    if (files.length > available) {
+      setError(`En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsin.`)
+    }
     setPhotoLoading(true)
     try {
-      const dataUrl = await fileToCompressedDataUrl(file)
-      setPhoto(dataUrl)
+      const selected = Array.from(files).slice(0, available)
+      const prepared = await Promise.all(selected.map((file) => fileToCompressedDataUrl(file)))
+      setPhotos((previous) => [...previous, ...prepared].slice(0, MAX_PHOTOS))
     } catch (photoError) {
       setError(photoError instanceof Error ? photoError.message : 'Fotoğraf yüklenemedi.')
     } finally {
@@ -64,7 +75,7 @@ export default function ReportModal({ location, onClose, onSubmit }: ReportModal
     onSubmit({
       category,
       description: description.trim(),
-      photo: photo ?? undefined,
+      photos: photos.length ? photos : undefined,
     })
   }
 
@@ -166,38 +177,47 @@ export default function ReportModal({ location, onClose, onSubmit }: ReportModal
 
             <div className="field">
               <span className="field-label">
-                Fotoğraf
-                <span className="optional">İsteğe bağlı</span>
+                Fotoğraflar
+                <span className="optional">En fazla 3</span>
               </span>
 
-              {photo ? (
-                <div className="photo-preview">
-                  <img src={photo} alt="Seçilen fotoğrafın önizlemesi" />
-                  <button
-                    type="button"
-                    className="photo-remove"
-                    onClick={() => setPhoto(null)}
-                    aria-label="Fotoğrafı kaldır"
-                  >
-                    <Trash2 size={14} />
-                    Kaldır
-                  </button>
+              {photos.length > 0 && (
+                <div className="photo-grid">
+                  {photos.map((source, index) => (
+                    <div key={`${index}-${source.length}`} className="photo-preview">
+                      <img src={source} alt={`${index + 1}. fotoğrafın önizlemesi`} />
+                      <button
+                        type="button"
+                        className="photo-remove"
+                        onClick={() => setPhotos((previous) => previous.filter((_, i) => i !== index))}
+                        aria-label={`${index + 1}. fotoğrafı kaldır`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
+              )}
+
+              {photos.length < MAX_PHOTOS && (
                 <label className={`photo-drop${photoLoading ? ' is-loading' : ''}`}>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={(event) => void handlePhoto(event.target.files?.[0])}
+                    multiple
+                    onChange={(event) => void handlePhotos(event.target.files)}
                     disabled={photoLoading}
                   />
                   <span className="photo-drop-icon">
                     {photoLoading ? <LoaderCircle size={20} className="spin" /> : <ImagePlus size={20} />}
                   </span>
                   <span className="photo-drop-text">
-                    <strong>{photoLoading ? 'Fotoğraf hazırlanıyor...' : 'Fotoğraf ekle'}</strong>
-                    <small>JPG, PNG · en fazla 12 MB</small>
+                    <strong>{photoLoading ? 'Fotoğraflar hazırlanıyor...' : 'Fotoğraf ekle'}</strong>
+                    <small>JPG, PNG · her biri en fazla 2 MB</small>
+                  </span>
+                  <span className="photo-count">
+                    {photos.length}/{MAX_PHOTOS}
                   </span>
                   <span className="photo-camera">
                     <Camera size={15} />

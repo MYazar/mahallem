@@ -194,7 +194,7 @@ export default function App() {
         {
           category: input.category,
           description: input.description,
-          photo: input.photo,
+          photos: input.photos,
           lat: draft.lat,
           lng: draft.lng,
         },

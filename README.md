@@ -5,7 +5,7 @@ Seyrantepe Mahallesi (Kağıthane, İstanbul) için harita tabanlı ortak günde
 ## Özellikler
 
 - Seyrantepe sınırlarına sabitlenmiş etkileşimli harita (MapLibre GL JS + OpenFreeMap)
-- Haritaya tıklayarak konum seçme, kategori/açıklama/fotoğraf ekleme
+- Haritaya tıklayarak konum seçme, kategori/açıklama ve en fazla 3 fotoğraf ekleme (her biri en fazla 2 MB)
 - Kategori renkli işaretler, kümeler ve duyuru balonları
 - Duyuru detayı, kamuoyu desteği ve yorumlar
 - “En yeni” ve “Gündem” sıralamaları

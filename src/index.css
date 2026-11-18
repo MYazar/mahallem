@@ -1584,6 +1584,13 @@ textarea:focus {
   color: var(--muted);
 }
 
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .photo-preview {
   position: relative;
   overflow: hidden;
@@ -1596,6 +1603,20 @@ textarea:focus {
   width: 100%;
   height: 132px;
   object-fit: cover;
+}
+
+.photo-grid .photo-preview img {
+  height: 86px;
+}
+
+.photo-count {
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .photo-remove {
@@ -1829,12 +1850,27 @@ textarea:focus {
   width: 600px;
 }
 
+.detail-photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.detail-photos.single {
+  grid-template-columns: 1fr;
+}
+
 .detail-photo {
+  display: block;
   width: 100%;
-  max-height: 240px;
+  max-height: 180px;
   object-fit: cover;
   border-radius: 14px;
-  margin-bottom: 12px;
+}
+
+.detail-photos.single .detail-photo {
+  max-height: 240px;
 }
 
 .detail-desc {

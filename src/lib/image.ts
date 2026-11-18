@@ -1,4 +1,4 @@
-const MAX_FILE_BYTES = 12 * 1024 * 1024
+const MAX_FILE_BYTES = 2 * 1024 * 1024
 const MAX_EDGE = 1000
 
 function readFile(file: File): Promise<string> {
@@ -25,7 +25,7 @@ export async function fileToCompressedDataUrl(file: File): Promise<string> {
     throw new Error('Lütfen bir fotoğraf seçin.')
   }
   if (file.size > MAX_FILE_BYTES) {
-    throw new Error('Fotoğraf 12 MB’dan büyük olamaz.')
+    throw new Error('Fotoğraf 2 MB’dan büyük olamaz.')
   }
 
   const dataUrl = await readFile(file)

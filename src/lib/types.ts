@@ -22,6 +22,7 @@ export interface Report {
   lat: number
   lng: number
   photo?: string
+  photos?: string[]
   createdAt: string
   /** Kamuoyu desteği sayısı (eski veri alanı adı korunuyor). */
   endorsements?: number
@@ -39,7 +40,7 @@ export interface DraftLocation {
 export interface NewReportInput {
   category: CategoryId
   description: string
-  photo?: string
+  photos?: string[]
 }
 
 export interface LocateResult {

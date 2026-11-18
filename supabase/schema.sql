@@ -10,7 +10,7 @@ create table if not exists public.reports (
   description text not null,
   lat double precision not null,
   lng double precision not null,
-  photo_url text,
+  photo_url text, -- tek URL veya en fazla 3 URL içeren JSON dizi
   created_at timestamptz not null default now(),
   owner_id uuid not null,
   endorsements int not null default 0,

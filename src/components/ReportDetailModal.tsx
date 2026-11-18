@@ -30,6 +30,7 @@ export default function ReportDetailModal({
   const category = getCategory(report.category)
   const supportCount = report.endorsements ?? 0
   const comments = report.comments ?? []
+  const photos = report.photos?.length ? report.photos : report.photo ? [report.photo] : []
 
   useEffect(() => {
     document.body.classList.add('modal-open')
@@ -73,8 +74,17 @@ export default function ReportDetailModal({
         </div>
 
         <div className="modal-body">
-          {report.photo && (
-            <img className="detail-photo" src={report.photo} alt="Duyuru fotoğrafı" />
+          {photos.length > 0 && (
+            <div className={`detail-photos${photos.length === 1 ? ' single' : ''}`}>
+              {photos.slice(0, 3).map((source, index) => (
+                <img
+                  key={`${index}-${source.length}`}
+                  className="detail-photo"
+                  src={source}
+                  alt={`${index + 1}. duyuru fotoğrafı`}
+                />
+              ))}
+            </div>
           )}
 
           <p className="detail-desc">{report.description}</p>

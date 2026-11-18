@@ -14,14 +14,32 @@ interface ReportRow {
   comments: ReportComment[] | null
 }
 
+/** Eski tek URL formatı ile yeni JSON dizi formatını birlikte okur. */
+function parsePhotoUrls(value: string | null): string[] {
+  if (!value) return []
+  if (value.trimStart().startsWith('[')) {
+    try {
+      const parsed: unknown = JSON.parse(value)
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string').slice(0, 3)
+      }
+    } catch {
+      // Bozuk JSON varsa tek URL olarak devam et.
+    }
+  }
+  return [value]
+}
+
 function rowToReport(row: ReportRow): Report {
+  const photos = parsePhotoUrls(row.photo_url)
   return {
     id: row.id,
     category: row.category as CategoryId,
     description: row.description,
     lat: row.lat,
     lng: row.lng,
-    photo: row.photo_url ?? undefined,
+    photo: photos[0],
+    photos,
     createdAt: row.created_at,
     ownerId: row.owner_id,
     endorsements: row.endorsements ?? 0,
@@ -83,11 +101,14 @@ export async function uploadPhoto(dataUrl: string, userId: string): Promise<stri
 }
 
 export async function insertReport(
-  input: { category: CategoryId; description: string; photo?: string; lat: number; lng: number },
+  input: { category: CategoryId; description: string; photos?: string[]; lat: number; lng: number },
   userId: string,
 ): Promise<Report | null> {
   if (!supabase) return null
-  const photoUrl = input.photo ? await uploadPhoto(input.photo, userId) : undefined
+  const uploaded = await Promise.all(
+    (input.photos ?? []).slice(0, 3).map((photo) => uploadPhoto(photo, userId)),
+  )
+  const photoUrls = uploaded.filter((url): url is string => Boolean(url))
   const { data, error } = await supabase
     .from('reports')
     .insert({
@@ -95,7 +116,7 @@ export async function insertReport(
       description: input.description,
       lat: input.lat,
       lng: input.lng,
-      photo_url: photoUrl ?? null,
+      photo_url: photoUrls.length ? JSON.stringify(photoUrls) : null,
       owner_id: userId,
       endorsements: 0,
       comments: [],
