@@ -81,12 +81,107 @@ function createPopupContent(
   const root = document.createElement('div')
   root.className = 'report-popup'
 
-  if (report.photo) {
-    const photo = document.createElement('img')
-    photo.className = 'popup-photo'
-    photo.src = report.photo
-    photo.alt = `${category.label} duyurusu fotoğrafı`
-    root.appendChild(photo)
+  const photos = report.photos?.length ? report.photos : report.photo ? [report.photo] : []
+
+  if (photos.length > 0) {
+    const galleryWrap = document.createElement('div')
+    galleryWrap.className = 'popup-gallery-wrap'
+
+    const gallery = document.createElement('div')
+    gallery.className = 'popup-gallery'
+    photos.slice(0, 3).forEach((source, index) => {
+      const photo = document.createElement('img')
+      photo.className = 'popup-photo'
+      photo.src = source
+      photo.alt = `${index + 1}. ${category.label} duyurusu fotoğrafı`
+      photo.loading = 'lazy'
+      gallery.appendChild(photo)
+    })
+    galleryWrap.appendChild(gallery)
+
+    if (photos.length > 1) {
+      const counter = document.createElement('span')
+      counter.className = 'popup-gallery-count'
+      counter.textContent = `1 / ${photos.length}`
+
+      const move = (direction: number) => {
+        gallery.scrollBy({ left: direction * gallery.clientWidth, behavior: 'smooth' })
+      }
+
+      const prev = document.createElement('button')
+      prev.type = 'button'
+      prev.className = 'popup-gallery-nav prev'
+      prev.setAttribute('aria-label', 'Önceki fotoğraf')
+      prev.textContent = '‹'
+      prev.addEventListener('click', (event) => {
+        event.stopPropagation()
+        move(-1)
+      })
+
+      const next = document.createElement('button')
+      next.type = 'button'
+      next.className = 'popup-gallery-nav next'
+      next.setAttribute('aria-label', 'Sonraki fotoğraf')
+      next.textContent = '›'
+      next.addEventListener('click', (event) => {
+        event.stopPropagation()
+        move(1)
+      })
+
+      galleryWrap.append(counter, prev, next)
+
+      gallery.addEventListener(
+        'scroll',
+        () => {
+          const index = Math.round(gallery.scrollLeft / gallery.clientWidth)
+          counter.textContent = `${Math.min(photos.length, index + 1)} / ${photos.length}`
+        },
+        { passive: true },
+      )
+    }
+
+    // Galeriyle etkileşim haritayı sürüklemesin veya yakınlaştırmasın.
+    gallery.addEventListener('mousedown', (event) => event.stopPropagation())
+    gallery.addEventListener('touchstart', (event) => event.stopPropagation(), { passive: true })
+    gallery.addEventListener('touchmove', (event) => event.stopPropagation(), { passive: true })
+    gallery.addEventListener(
+      'wheel',
+      (event) => {
+        event.stopPropagation()
+        if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+          event.preventDefault()
+          gallery.scrollLeft += event.deltaY
+        }
+      },
+      { passive: false },
+    )
+
+    let dragging = false
+    let startX = 0
+    let startScroll = 0
+    gallery.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse') return
+      event.stopPropagation()
+      dragging = true
+      startX = event.clientX
+      startScroll = gallery.scrollLeft
+      gallery.style.scrollSnapType = 'none'
+      gallery.setPointerCapture(event.pointerId)
+    })
+    gallery.addEventListener('pointermove', (event) => {
+      if (!dragging) return
+      gallery.scrollLeft = startScroll - (event.clientX - startX)
+    })
+    const endDrag = (event: PointerEvent) => {
+      if (!dragging) return
+      dragging = false
+      gallery.style.scrollSnapType = ''
+      if (gallery.hasPointerCapture(event.pointerId)) gallery.releasePointerCapture(event.pointerId)
+    }
+    gallery.addEventListener('pointerup', endDrag)
+    gallery.addEventListener('pointercancel', endDrag)
+
+    root.appendChild(galleryWrap)
   }
 
   const body = document.createElement('div')
