@@ -78,11 +78,22 @@ export async function fetchSupportedIds(userId: string): Promise<string[]> {
   return data.map((row) => row.report_id as string)
 }
 
+/** Data URL'i fetch kullanmadan Blob'a çevirir (bazı tarayıcılar data: fetch'ini engeller). */
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, payload] = dataUrl.split(',')
+  const mime = header?.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+  const binary = atob(payload ?? '')
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return new Blob([bytes], { type: mime })
+}
+
 export async function uploadPhoto(dataUrl: string, userId: string): Promise<string | undefined> {
   if (!supabase) return undefined
   try {
-    const response = await fetch(dataUrl)
-    const blob = await response.blob()
+    const blob = dataUrlToBlob(dataUrl)
     const ext = blob.type.includes('png') ? 'png' : 'jpg'
     const unique =
       typeof crypto.randomUUID === 'function'
