@@ -34,7 +34,6 @@ interface MapViewProps {
 
 const baseStyles = {
   streets: 'https://tiles.openfreemap.org/styles/liberty',
-  dark: 'https://tiles.openfreemap.org/styles/dark',
   satellite: {
     version: 8 as const,
     sources: {
@@ -560,10 +559,10 @@ export default function MapView({
     reportsSource?.setData(buildCollection(reportsRef.current))
   }, [])
 
-  const [baseMap, setBaseMap] = useState<'streets' | 'satellite' | 'dark'>('streets')
+  const [baseMap, setBaseMap] = useState<'streets' | 'satellite'>('streets')
 
   const changeBaseMap = useCallback(
-    (next: 'streets' | 'satellite' | 'dark') => {
+    (next: 'streets' | 'satellite') => {
       if (next === baseMap) return
       const map = mapRef.current
       if (!map) return
@@ -783,13 +782,6 @@ export default function MapView({
             onClick={() => changeBaseMap('satellite')}
           >
             Uydu
-          </button>
-          <button
-            type="button"
-            className={`basemap-option${baseMap === 'dark' ? ' is-active' : ''}`}
-            onClick={() => changeBaseMap('dark')}
-          >
-            Karanlık
           </button>
         </div>
       </div>
